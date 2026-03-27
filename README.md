@@ -1,6 +1,6 @@
 # Gymtrax_app
 
-# Gym Tracker App
+# Gym Tracking App
 
 ## Overview
 This is a Flutter app that helps users track their gym workouts and progress.
