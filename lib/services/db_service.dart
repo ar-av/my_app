@@ -130,7 +130,7 @@ class DBService {
     _box.clear();
     debugPrint("🔥 DATABASE WIPED");
 
-
+ 
   }
 
   // --- DEV TOOL: Get all raw data ---
