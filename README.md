@@ -1,66 +1,20 @@
-# Gymtrax_app
+# GymTrax 
+> A Reactive Cross-Platform Fitness Analytics Application
 
-# Gym Tracking App
+Traditional fitness apps act as simple digital journals. GymTrax operates as a biomechanical analytics tool, normalizing raw workout data to assess true relative strength and physiological balance.
 
-## Overview
-This is a Flutter app that helps users track their gym workouts and progress.
+# Core Features
+* **The Normalization Engine:** Compares absolute lifts against intermediate powerlifting baselines (Bench: 100kg, Squat: 140kg, Deadlift: 180kg) to plot a fair, non-linear strength profile.
+* **Strength Ratio Assessment:** Uses your current Bench Press PR as a dynamic anchor to actively calculate targeted physical balance for your legs and back.
+* **Zero-Latency Reactive UI:** Built with Flutter and Hive NoSQL to recalculate complex analytics instantly without dropping UI frames.
 
-## Features
-- Track Push, Pull, and Leg workouts
-- Store user details (name, age, height, weight)
-- Weekly progress tracking
-- Dark themed UI
+# Dashboard & UI Engineering
+* **Reactive Analytics Hub:** Aggregates real-time data from the local Hive cache and pushes targeted UI updates without heavy, main-thread blocking state refreshes.
+* **Non-Linear Strength Profile:** Utilizes a customized, curved categorical spline (`fl_chart`) with translucent gradient fills to visually map the user's "Strength Mountain."
+* **Raw Data Ledger:** Dynamically maps local data into clean UI rows, concurrently displaying absolute weight and algorithmically normalized scores.
+* **Dynamic Balance Indicators:** Conditional UI rendering that tracks the 1.4x (Squat) and 1.8x (Deadlift) ratios, dynamically shifting from a deficit warning to a "Balanced " success state when the 95% symmetry threshold is achieved.
 
-## Tech Stack
-- Flutter
-- Dart
-
-## Screenshots
-
-# Gym Tracker App
-
-## Overview
-This is a Flutter app that helps users track their gym workouts and progress.
-
-## Features
-- Track Push, Pull, and Leg workouts
-- Store user details (name, age, height, weight)
-- Weekly progress tracking
-- Dark themed UI
-
-## Tech Stack
-- Flutter
-- Dart
-
-## Screenshots
-(Add screenshots here)
-
-# Gym Tracker App
-
-## Overview
-This is a Flutter app that helps users track their gym workouts and progress.
-
-## Features
-- Track Push, Pull, and Leg workouts
-- Store user details (name, age, height, weight)
-- Weekly progress tracking
-- Dark themed UI
-
-## Tech Stack
-- Flutter
-- Dart
-
-# Screenshots
-
-<table>
-  <tr>
-    <td><img src="homescreenScreenshot.png" width="400"></td>
-    <td><img src="progressScreenshot.png" width="400"></td>
-    <td><img src="streakscreen.png" width="400"></td>
-  </tr>
-</table>
-
-## How to Run
-1. Clone the repo
-2. Run `flutter pub get`
-3. Run `flutter run`
+Tech Stack
+* **Frontend:** Flutter / Dart
+* **Local Storage:** Hive
+* **Data Visualization:** fl_chart
