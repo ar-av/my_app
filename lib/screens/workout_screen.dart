@@ -3,7 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../services/db_service.dart';
 import '../widgets/workout_input.dart';
 import '../widgets/section_header.dart';
-import '../widgets/bottom_nav_bar.dart';
+
 
 class WorkoutScreen extends StatefulWidget {
   const WorkoutScreen({super.key});
@@ -29,8 +29,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   @override
   void initState() {
     super.initState();
-    _db.autoLogWorkout();
-    
+
     // Load lists and setup controllers
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeData();
@@ -71,14 +70,27 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
 
   // 3. SAVE ALL GAINS
   void _updateAll() {
+    var hasWorkoutData = false;
+
     for (var ex in _controllers.keys) {
-      double val = double.tryParse(_controllers[ex]!.text) ?? 0;
+      final val = double.tryParse(_controllers[ex]!.text) ?? 0;
+      if (val > 0) {
+        hasWorkoutData = true;
+      }
       _db.saveWeight(ex, val);
     }
 
+    if (hasWorkoutData) {
+      _db.autoLogWorkout();
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Gains saved to database!"), 
+      SnackBar(
+        content: Text(
+          hasWorkoutData
+              ? "Workout saved and streak updated."
+              : "Workout saved. Add a weight to count it toward your streak.",
+        ),
         backgroundColor: Colors.cyan,
         duration: Duration(seconds: 1),
       ),
@@ -260,7 +272,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           );
         },
       ),
-      bottomNavigationBar: const BottomNav(currentIndex: 0),
+      
     );
   }
 }

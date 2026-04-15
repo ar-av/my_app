@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import '../screens/workout_screen.dart';
-import '../screens/progress_screen.dart';
-import '../screens/streak_screen.dart';
 
-class BottomNav extends StatelessWidget {
+class BottomNavBar extends StatelessWidget {
   final int currentIndex;
+  final ValueChanged<int> onItemTapped;
 
-  const BottomNav({super.key, required this.currentIndex});
+  const BottomNavBar({
+    super.key,
+    required this.currentIndex,
+    required this.onItemTapped,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -40,29 +42,7 @@ class BottomNav extends StatelessWidget {
           
           // LOGIC
           currentIndex: currentIndex,
-          onTap: (index) {
-            if (index == currentIndex) return; // Don't reload current page
-
-            // NAVIGATION LOGIC (Swaps screens instantly)
-            Widget nextPage;
-            if (index == 0) {
-              nextPage = const WorkoutScreen();
-            } else if (index == 1) {
-              nextPage = const ProgressScreen();
-            } else {
-              nextPage = const StreakScreen();
-            }
-
-            // This creates a smooth "Fade" transition instead of a "Slide"
-            Navigator.pushReplacement(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, anim1, anim2) => nextPage,
-                transitionDuration: Duration.zero, // Instant swap (like a Tab Bar)
-                reverseTransitionDuration: Duration.zero,
-              ),
-            );
-          },
+          onTap: onItemTapped,
           
           // ICONS
           items: const [
@@ -70,13 +50,18 @@ class BottomNav extends StatelessWidget {
               icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.home_rounded)), 
               label: 'Home'
             ),
+
+             BottomNavigationBarItem(
+              icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.fitness_center)), 
+              label: 'Workout'
+            ),
             BottomNavigationBarItem(
               icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.bar_chart_rounded)), 
               label: 'Progress'
             ),
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.local_fire_department_rounded)), 
-              label: 'Streak'
+              icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.analytics)), 
+              label: 'Analytics'
             ),
           ],
         ),

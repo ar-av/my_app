@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/login_screen.dart';
-import 'screens/workout_screen.dart';
-import 'screens/progress_screen.dart';
-
-import 'screens/streak_screen.dart';
+import 'screens/dashboard_screen.dart';
 import 'package:path_provider/path_provider.dart';
 
 void main() async {
@@ -13,15 +11,10 @@ void main() async {
   await Hive.initFlutter();
 
   final box = await Hive.openBox('userBox');
-  // ADD THIS SINGLE EXACT LINE:
-  debugPrint("🚨 MY DB DATA: ${Hive.box('userBox').toMap()}");
-
-  debugPrint("--- GYMTRAX DATABASE CONTENT ---");
-  debugPrint(box.toMap().toString());
-  debugPrint("--------------------------------");
-
-  final directory = await getApplicationDocumentsDirectory();
-  debugPrint("DATABASE FOLDER: ${directory.path}");
+  if (kDebugMode) {
+    final directory = await getApplicationDocumentsDirectory();
+    debugPrint("DATABASE FOLDER: ${directory.path}");
+  }
 
   final bool isLoggedIn = box.get('isLoggedIn', defaultValue: false);
 
@@ -39,15 +32,16 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
 
       // 👇 Explicit initial route logic
-      initialRoute: isLoggedIn ? '/workout' : '/login',
+     // 👇 Keeps the logic clean
+      initialRoute: isLoggedIn ? '/home' : '/login',
 
       routes: {
-        '/login': (context) => const LoginScreen(),
-        '/workout': (context) => const WorkoutScreen(),
-        '/progress': (context) => const ProgressScreen(),
-       
+        '/home' : (context) => const DashboardScreen(), // The Building
+        '/login': (context) => const LoginScreen(),     // The Front Door
         
-        '/streak': (context) => const StreakScreen(),
+        // 🗑️ REMOVE THESE:
+        // '/workout': (context) => const WorkoutScreen(), 
+        // '/progress': (context) => const ProgressScreen(),
       },
     );
   }

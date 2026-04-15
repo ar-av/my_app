@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/db_service.dart';
-import '../screens/workout_screen.dart';
 import '../widgets/fade_slide.dart';
 
 class LoginWidget extends StatefulWidget {
@@ -16,6 +15,7 @@ class _LoginWidgetState extends State<LoginWidget> {
   
   final emailController = TextEditingController();
   final passController = TextEditingController();
+  bool _isCreatingAccount = false;
 
   @override
   void dispose() {
@@ -25,31 +25,50 @@ class _LoginWidgetState extends State<LoginWidget> {
   }
 
   // --- LOGIC ---
-  void _attemptLogin() {
+  void _submitAuth() {
     if (_formKey.currentState!.validate()) {
-      String email = emailController.text.trim();
-      String password = passController.text;
+      final email = emailController.text.trim();
+      final password = passController.text;
 
-      bool isSuccess = _db.handleAuth(email, password);
+      final isSuccess = _isCreatingAccount
+          ? _db.createAccount(email, password)
+          : _db.login(email, password);
       
-      
-
       if (isSuccess) {
-        if (mounted) {
-           Navigator.pushReplacement(
-            context, 
-            MaterialPageRoute(builder: (_) => const WorkoutScreen())
-          );
-        }
-      } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Row(
+              content: Text(
+                _isCreatingAccount
+                    ? "Account created successfully."
+                    : "Logged in successfully.",
+              ),
+              backgroundColor: Colors.teal,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              margin: const EdgeInsets.all(20),
+            ),
+          );
+          Navigator.pushReplacementNamed(context, '/home');
+        }
+      } else {
+        if (mounted) {
+          final accountExists = _db.accountExists(email);
+          final message = _isCreatingAccount
+              ? accountExists
+                  ? "An account with this email already exists."
+                  : "Could not create the account."
+              : accountExists
+                  ? "Invalid credentials. Try again."
+                  : "No account found for that email. Create one first.";
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
                 children: [
-                  Icon(Icons.error_outline, color: Colors.white),
-                  SizedBox(width: 10),
-                  Text("Invalid Credentials. Try again!"),
+                  const Icon(Icons.error_outline, color: Colors.white),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(message)),
                 ],
               ),
               backgroundColor: Colors.redAccent.shade700,
@@ -104,8 +123,6 @@ class _LoginWidgetState extends State<LoginWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // REMOVED SCAFFOLD & GRADIENT CONTAINER
-    // This widget now returns ONLY the scrollable content form.
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 30),
       child: Form(
@@ -204,20 +221,40 @@ class _LoginWidgetState extends State<LoginWidget> {
                   ],
                 ),
                 child: ElevatedButton(
-                  onPressed: _attemptLogin,
+                  onPressed: _submitAuth,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   ),
-                  child: const Text(
-                    "E n t e r   g y m",
-                    style: TextStyle(
+                  child: Text(
+                    _isCreatingAccount ? "C r e a t e   a c c o u n t" : "E n t e r   g y m",
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                       letterSpacing: 1.5,
                     ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            FadeSlide(
+              index: 5,
+              child: TextButton(
+                onPressed: () {
+                  setState(() {
+                    _isCreatingAccount = !_isCreatingAccount;
+                  });
+                },
+                child: Text(
+                  _isCreatingAccount
+                      ? "Already have an account? Log in"
+                      : "New here? Create an account",
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
                   ),
                 ),
               ),

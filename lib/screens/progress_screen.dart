@@ -3,7 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../services/db_service.dart'; // <--- Added DB Service import
 import '../widgets/progress_widget.dart'; 
 import '../widgets/section_header.dart';
-import '../widgets/bottom_nav_bar.dart';
+
 
 class ProgressScreen extends StatelessWidget {
   const ProgressScreen({super.key});
@@ -68,7 +68,7 @@ class ProgressScreen extends StatelessWidget {
           );
         },
       ),
-      bottomNavigationBar: const BottomNav(currentIndex: 1),
+      
     );
   }
 }
