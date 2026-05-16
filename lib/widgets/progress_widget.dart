@@ -17,21 +17,24 @@ class ProgressWidget extends StatelessWidget {
     double currentWeight = db.getPR(exerciseName, defaultValue: 0.0);
 
     // 1. LOGIC: Handle both + and -
-    void updateWeight(double amount) {
+    Future<void> updateWeight(double amount) async {
       double newTotal = currentWeight + amount;
       
       // Prevent going below zero
       if (newTotal < 0) newTotal = 0;
 
       // Save using the exerciseName as the key
-      db.saveWeight(exerciseName, newTotal);
+      await db.saveWeight(exerciseName, newTotal);
+      if (!context.mounted) return;
       
       // Different message for add vs remove
       String msg = amount > 0 
           ? "Gains! Increased to $newTotal kg" 
           : "Weight dropped to $newTotal kg";
+   if (!context.mounted) return;
+     ScaffoldMessenger.of(context).clearSnackBars(); 
 
-      ScaffoldMessenger.of(context).clearSnackBars(); 
+     if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(msg),

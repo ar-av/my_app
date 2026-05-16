@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../services/db_service.dart';
@@ -69,7 +71,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   }
 
   // 3. SAVE ALL GAINS
-  void _updateAll() {
+  Future<void> _updateAll() async {
     var hasWorkoutData = false;
 
     for (var ex in _controllers.keys) {
@@ -77,13 +79,14 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       if (val > 0) {
         hasWorkoutData = true;
       }
-      _db.saveWeight(ex, val);
+      await _db.saveWeight(ex, val);
     }
 
     if (hasWorkoutData) {
-      _db.autoLogWorkout();
+      await _db.autoLogWorkout();
     }
 
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -123,8 +126,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
               child: const Text("CANCEL", style: TextStyle(color: Colors.white54)),
             ),
             ElevatedButton(
-              onPressed: () {
-                String newEx = newExController.text.trim();
+              onPressed: () async {
+                final newEx = newExController.text.trim();
                 if (newEx.isNotEmpty) {
                   setState(() {
                     // Add to list
@@ -134,7 +137,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                   });
                   
                   // Save new layout to DB
-                  _db.saveExerciseList(category, _exercises[category]!);
+                  await _db.saveExerciseList(category, _exercises[category]!);
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                 }
               },
@@ -149,14 +153,16 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
 
 
   // 5. THE DELETE FUNCTION
-  void _deleteExercise(String category, String exerciseName) {
+  Future<void> _deleteExercise(String category, String exerciseName) async {
     setState(() {
       _exercises[category]!.remove(exerciseName);
       _controllers[exerciseName]?.dispose();
       _controllers.remove(exerciseName);
     });
 
-    _db.saveExerciseList(category, _exercises[category]!);
+    await _db.saveExerciseList(category, _exercises[category]!);
+
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -190,7 +196,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
             ),
             onDismissed: (direction) {
               // The delete function is officially connected right here!
-              _deleteExercise(title, ex);
+              unawaited(_deleteExercise(title, ex));
             },
             child: WorkoutInput(
               label: ex,
@@ -227,9 +233,11 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () {
-              _db.logout();
-              if (context.mounted) Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+            onPressed: () async {
+              await _db.logout();
+              if (!context.mounted) return;
+              Navigator.of(context)
+                  .pushNamedAndRemoveUntil('/login', (route) => false);
             },
           ),
         ],

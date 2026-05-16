@@ -25,14 +25,14 @@ class _LoginWidgetState extends State<LoginWidget> {
   }
 
   // --- LOGIC ---
-  void _submitAuth() {
+  Future<void> _submitAuth() async {
     if (_formKey.currentState!.validate()) {
       final email = emailController.text.trim();
       final password = passController.text;
 
       final isSuccess = _isCreatingAccount
-          ? _db.createAccount(email, password)
-          : _db.login(email, password);
+          ? await _db.createAccount(email, password)
+          : await _db.login(email, password);
       
       if (isSuccess) {
         if (mounted) {

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
@@ -20,11 +21,10 @@ class DBService {
     return sha256.convert(utf8.encode(password)).toString();
   }
 
-  // =========================================================
   // 1. AUTHENTICATION (Multi-User + Secure)
-  // =========================================================
+  
 
-  bool createAccount(String enteredEmail, String enteredPassword) {
+  Future<bool> createAccount(String enteredEmail, String enteredPassword) async {
     final cleanEmail = enteredEmail.trim().toLowerCase();
     final userPassKey = _passwordKeyForEmail(cleanEmail);
     final savedPassword = _box.get(userPassKey);
@@ -34,14 +34,15 @@ class DBService {
       return false;
     }
 
-    _box.put(userPassKey, _hashPassword(enteredPassword));
-    _box.put('currentUserEmail', cleanEmail);
-    _box.put('isLoggedIn', true);
+    await _box.put(userPassKey, _hashPassword(enteredPassword));
+    await _box.put('currentUserEmail', cleanEmail);
+    await _box.put('isLoggedIn', true);
+    await _box.flush();
     debugPrint("🆕 New Account Created for $cleanEmail");
     return true;
   }
 
-  bool login(String enteredEmail, String enteredPassword) {
+  Future<bool> login(String enteredEmail, String enteredPassword) async {
     final cleanEmail = enteredEmail.trim().toLowerCase();
     final userPassKey = _passwordKeyForEmail(cleanEmail);
     final savedPassword = _box.get(userPassKey);
@@ -61,12 +62,13 @@ class DBService {
     }
 
     if (savedPassword == enteredPassword) {
-      _box.put(userPassKey, hashedPassword);
+      await _box.put(userPassKey, hashedPassword);
       debugPrint("🔐 Migrated legacy password storage for $cleanEmail");
     }
 
-    _box.put('currentUserEmail', cleanEmail);
-    _box.put('isLoggedIn', true);
+    await _box.put('currentUserEmail', cleanEmail);
+    await _box.put('isLoggedIn', true);
+    await _box.flush();
     debugPrint("✅ Welcome back, $cleanEmail");
     return true;
   }
@@ -76,10 +78,12 @@ class DBService {
     return _box.containsKey(_passwordKeyForEmail(cleanEmail));
   }
 
-  void logout() {
-    _box.put('isLoggedIn', false);
-    _box.delete('currentUserEmail'); // 👈 Kills the "Ghost" session
-    debugPrint("🔒 Logged out and session cleared.");
+  Future<void> logout() async {
+    await _box.put('isLoggedIn', false);
+    await _box.delete('currentUserEmail'); //  Kills the "Ghost" session
+    await _box.flush();
+    debugPrint("🕵️ VAULT CONTENTS AFTER LOGOUT: ${_box.keys.toList()}");
+    debugPrint(" Logged out and session cleared.");
   }
 
   bool get isLoggedIn => _box.get('isLoggedIn', defaultValue: false);
@@ -90,18 +94,20 @@ class DBService {
     return "${email}_$baseKey";
   }
 
-  // =========================================================
+  
   // 2. BODY STATS & WORKOUT DATA (Private to User)
-  // =========================================================
+  
 
-  void saveBodyStat(String key, double value) {
-    _box.put(_getUserKey(key), value);
+  Future<void> saveBodyStat(String key, double value) async {
+    await _box.put(_getUserKey(key), value);
+    await _box.flush();
     debugPrint("💾 Saved $key: $value");
   }
 
   // --- REST TIMER MEMORY ---
-  void saveRestTimer(int seconds) {
-    _box.put(_getUserKey('rest_timer'), seconds);
+  Future<void> saveRestTimer(int seconds) async {
+    await _box.put(_getUserKey('rest_timer'), seconds);
+    await _box.flush();
     debugPrint("⏱️ Timer Default Saved: $seconds sec");
   }
 
@@ -118,10 +124,11 @@ class DBService {
     return _box.get(_getUserKey(exerciseKey), defaultValue: defaultValue);
   }
 
-  void saveWeight(String exerciseKey, double weightToSave) {
+  Future<void> saveWeight(String exerciseKey, double weightToSave) async {
     if (weightToSave < 0) return;
 
-    _box.put(_getUserKey(exerciseKey), weightToSave);
+    await _box.put(_getUserKey(exerciseKey), weightToSave);
+    await _box.flush();
     debugPrint("✅ SAVED: $weightToSave to ${_getUserKey(exerciseKey)}");
   }
 
@@ -133,7 +140,7 @@ class DBService {
     return _box.get(_getUserKey('weeklyWorkouts'), defaultValue: 0);
   }
 
-  void autoLogWorkout() {
+  Future<void> autoLogWorkout() async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
@@ -150,16 +157,18 @@ class DBService {
 
     int current = getWeeklyWorkouts();
     if (current < 5) {
-      _box.put(_getUserKey('weeklyWorkouts'), current + 1);
+      await _box.put(_getUserKey('weeklyWorkouts'), current + 1);
       debugPrint("⭐ Auto-Log: Added star! Total: ${current + 1}");
     }
     
-    _box.put(_getUserKey('lastStarDate'), today.toIso8601String());
+    await _box.put(_getUserKey('lastStarDate'), today.toIso8601String());
+    await _box.flush();
   }
 
-  void resetWeek() {
-    _box.put(_getUserKey('weeklyWorkouts'), 0);
-    _box.delete(_getUserKey('lastStarDate')); 
+  Future<void> resetWeek() async {
+    await _box.put(_getUserKey('weeklyWorkouts'), 0);
+    await _box.delete(_getUserKey('lastStarDate')); 
+    await _box.flush();
     debugPrint("🔄 Week reset.");
   }
 
@@ -175,8 +184,9 @@ class DBService {
   }
 
   // Save the new split list
-  void saveUserSplit(List<String> newSplit) {
-    _box.put(_getUserKey('user_split'), newSplit);
+  Future<void> saveUserSplit(List<String> newSplit) async {
+    await _box.put(_getUserKey('user_split'), newSplit);
+    await _box.flush();
     debugPrint("📋 Split Updated: $newSplit");
   }
 
@@ -184,8 +194,9 @@ class DBService {
   // 5. DEV TOOLS & EXERCISE LISTS
   // =========================================================
 
-  void nukeDatabase() {
-    _box.clear();
+  Future<void> nukeDatabase() async {
+    await _box.clear();
+    await _box.flush();
     debugPrint("🔥 DATABASE WIPED");
   }
 
@@ -206,15 +217,16 @@ class DBService {
     final legacySaved = _box.get(legacyKey);
     if (legacySaved != null) {
       final migrated = (legacySaved as List).cast<String>();
-      _box.put(userKey, migrated);
+      unawaited(_box.put(userKey, migrated));
       return migrated;
     }
 
     return List<String>.from(defaultList);
   }
 
-  void saveExerciseList(String category, List<String> exercises) {
-    _box.put(_getUserKey('${category}_list'), exercises);
+  Future<void> saveExerciseList(String category, List<String> exercises) async {
+    await _box.put(_getUserKey('${category}_list'), exercises);
+    await _box.flush();
   }
 
   Map<dynamic, dynamic> dumpEntireDatabase() {

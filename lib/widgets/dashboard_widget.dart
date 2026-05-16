@@ -109,9 +109,10 @@ class _DashboardWidgetState extends State<DashboardWidget> {
             actions: [
               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel", style: TextStyle(color: Colors.grey))),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (controller.text.trim().isNotEmpty) tempSplit.add(controller.text.trim());
-                  _db.saveUserSplit(tempSplit);
+                  await _db.saveUserSplit(tempSplit);
+                  if (!ctx.mounted) return;
                   Navigator.pop(ctx);
                 },
                 child: const Text("Save Split"),
@@ -139,10 +140,11 @@ class _DashboardWidgetState extends State<DashboardWidget> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               double? val = double.tryParse(controller.text);
               if (val != null && val > 0) {
-                _db.saveBodyStat(key, val);
+                await _db.saveBodyStat(key, val);
+                if (!ctx.mounted) return;
                 Navigator.pop(ctx);
               }
             },
@@ -169,10 +171,11 @@ class _DashboardWidgetState extends State<DashboardWidget> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               int? newTime = int.tryParse(controller.text);
               if (newTime != null && newTime > 0) {
-                _db.saveRestTimer(newTime);
+                await _db.saveRestTimer(newTime);
+                if (!ctx.mounted) return;
                 _resetTimer();
                 Navigator.pop(ctx);
               }
